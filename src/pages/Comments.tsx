@@ -1,10 +1,27 @@
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { useState, useMemo, useEffect } from "react";
+import { Search, Filter, Plus, Download, Upload } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { PlatformBadge, StatusBadge } from "@/components/ui/status-badge";
-import { TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { StatusBadge, RiskBadge, LabelBadge, PlatformBadge } from "@/components/ui/status-badge";
+import { BulkActionsBar } from "@/components/queue/BulkActionsBar";
+import { PostRowActions } from "@/components/queue/PostRowActions";
+import { AuditTrail } from "@/components/queue/AuditTrail";
+import { mockUsers } from "@/data/mockData";
+import { Post, Status, RiskLevel } from "@/types";
 import { formatDistanceToNow } from "date-fns";
-import { Search, Table } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { usePostActions } from "@/hooks/usePostActions";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 const HOST = "https://1431ffb63976.ngrok-free.app"
 
@@ -12,37 +29,34 @@ const Timestamp: React.FC<{ iso: string }> = ({ iso }) => {
     const date = new Date(iso);
     return <span>{date.toLocaleString()}</span>;
   };
-
-export default function CommentsQueue() {
+  export default function CommentsQueue() {
     const [searchQuery, setSearchQuery] = useState("");
     const [comments, setComments] = useState<any[]>([]);
+    const [page, setPage] = useState(1);
+    const pageSize = 10; // matches backend default
+    const [loading, setLoading] = useState(false);
   
-    useEffect(() => {
-      const fetchComments = async () => {
-        const res = await fetch(HOST + "/api/comments", {
+    const fetchComments = async () => {
+      setLoading(true);
+      const offset = (page - 1) * pageSize;
+      const res = await fetch(
+        `${HOST}/api/comments?limit=${pageSize}&offset=${offset}`,
+        {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             "ngrok-skip-browser-warning": "true",
           },
-        });
-        const data = await res.json();
-        setComments(data);
-      };
-      fetchComments();
-    }, []);
+        }
+      );
+      const data = await res.json();
+      setComments(data);
+      setLoading(false);
+    };
   
-    const filteredComments = useMemo(() => {
-      return comments.filter((c) => {
-        if (!searchQuery) return true;
-        const searchLower = searchQuery.toLowerCase();
-        return (
-          c.body?.toLowerCase().includes(searchLower) ||
-          c.author?.toLowerCase().includes(searchLower) ||
-          c.comment_id.toLowerCase().includes(searchLower)
-        );
-      });
-    }, [searchQuery, comments]);
+    useEffect(() => {
+      fetchComments();
+    }, [page]);
   
     const truncateText = (text: string, maxLength: number = 200) => {
       return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
@@ -68,7 +82,10 @@ export default function CommentsQueue() {
                 <Input
                   placeholder="Search comments, authors, or IDs..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setPage(1); // reset to first page on search
+                  }}
                   className="pl-10"
                 />
               </div>
@@ -79,61 +96,86 @@ export default function CommentsQueue() {
         {/* Comments Table */}
         <Card>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>UUID</TableHead>
-                    <TableHead>Comment ID</TableHead>
-                    <TableHead>Media Item (ext)</TableHead>
-                    <TableHead>Author</TableHead>
-                    <TableHead>Body</TableHead>
-                    <TableHead>Platform</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Score</TableHead>
-                    <TableHead>Created at Platform</TableHead>
-                    <TableHead>Fetched</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredComments.map((c) => (
-                    <TableRow key={c.id} className="hover:bg-muted/30">
-                      <TableCell className="text-sm">{truncateText(c.id, 8)}</TableCell>
-                      <TableCell className="text-sm">{c.comment_id}</TableCell>
-                      <TableCell className="text-sm">{c.media_item_id_ext}</TableCell>
-                      <TableCell className="text-sm">{c.author || "-"}</TableCell>
-                      <TableCell className="max-w-md text-sm leading-relaxed">
-                        {truncateText(c.body || "", 200)}
-                      </TableCell>
-                      <TableCell>
-                        <PlatformBadge platform={c.platform} />
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge status={c.processing_status as any} />
-                      </TableCell>
-                      <TableCell>
-                        {c.score !== undefined && (
-                          <div className="flex items-center gap-1">
-                            <span className="text-sm font-medium">{c.score}</span>
-                            <span className="text-xs text-muted-foreground">/5</span>
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-xs text-muted-foreground">
-                          {formatRelativeTime(c.created_at_platform)}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Timestamp iso={c.fetched_at} />
-                      </TableCell>
+            {loading ? (
+              <div className="p-6 text-sm text-muted-foreground">Loading…</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Comment ID</TableHead>
+                      <TableHead>Media Item (ext)</TableHead>
+                      <TableHead>Author</TableHead>
+                      <TableHead>Body</TableHead>
+                      <TableHead>Platform</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Score</TableHead>
+                      <TableHead>Created at Platform</TableHead>
+                      <TableHead>Fetched</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {comments.map((c) => (
+                      <TableRow key={c.id} className="hover:bg-muted/30">
+                        <TableCell className="text-sm">{c.comment_id}</TableCell>
+                        <TableCell className="text-sm">{c.media_item_id_ext}</TableCell>
+                        <TableCell className="text-sm">{c.author || "-"}</TableCell>
+                        <TableCell className="max-w-md text-sm leading-relaxed">
+                          {truncateText(c.body || "", 200)}
+                        </TableCell>
+                        <TableCell>
+                          <PlatformBadge platform={c.platform} />
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge status={c.processing_status as any} />
+                        </TableCell>
+                        <TableCell>
+                          {c.score !== undefined && (
+                            <div className="flex items-center gap-1">
+                              <span className="text-sm font-medium">{c.score}</span>
+                              <span className="text-xs text-muted-foreground">/5</span>
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-xs text-muted-foreground">
+                            {formatRelativeTime(c.created_at_platform)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Timestamp iso={c.fetched_at} />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
+  
+        {/* Pagination Controls */}
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-muted-foreground">Page {page}</span>
+          <div className="space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={comments.length < pageSize}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
