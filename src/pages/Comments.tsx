@@ -22,6 +22,7 @@ import { Post, Status, RiskLevel } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 import { usePostActions } from "@/hooks/usePostActions";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import ProcessComments from "@/components/process-comments";
 
 const HOST = "https://1431ffb63976.ngrok-free.app"
 
@@ -29,7 +30,39 @@ const Timestamp: React.FC<{ iso: string }> = ({ iso }) => {
     const date = new Date(iso);
     return <span>{date.toLocaleString()}</span>;
   };
-  export default function CommentsQueue() {
+
+const PROCESSING_STATUS_MAP = {
+    0: "Created",
+    1: "Processing",
+    2: "Processed",
+    3: "Failed",
+}
+
+const RISK_LEVEL_MAP = {
+    0: "None",
+    1: "Low",
+    2: "Medium",
+    3: "High",
+    4: "Critical",
+}
+
+const PROCESSING_RESULT_MAP = {
+    0: "None",
+    1: "Low Priority",
+    2: "Needs Review",
+    3: "Needs Attention",
+    4: "Escalate",
+    8: "Failed",
+}
+
+const PROCESSING_CATEGORY_MAP = {
+    0: "Other",
+    1: "Self-harm",
+    2: "Suicidal Ideation",
+    3: "Anxiety / Depression",
+}
+
+export default function CommentsQueue() {
     const [searchQuery, setSearchQuery] = useState("");
     const [comments, setComments] = useState<any[]>([]);
     const [page, setPage] = useState(1);
@@ -71,6 +104,7 @@ const Timestamp: React.FC<{ iso: string }> = ({ iso }) => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-foreground">Comments</h1>
+          <ProcessComments />
         </div>
   
         {/* Search */}
@@ -109,7 +143,13 @@ const Timestamp: React.FC<{ iso: string }> = ({ iso }) => {
                       <TableHead>Body</TableHead>
                       <TableHead>Platform</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Score</TableHead>
+
+                      <TableHead>Risk Score</TableHead>
+                      <TableHead>Risk Level</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Processed At</TableHead>
+                      <TableHead>Result</TableHead>
+
                       <TableHead>Created at Platform</TableHead>
                       <TableHead>Fetched</TableHead>
                     </TableRow>
@@ -117,7 +157,7 @@ const Timestamp: React.FC<{ iso: string }> = ({ iso }) => {
                   <TableBody>
                     {comments.map((c) => (
                       <TableRow key={c.id} className="hover:bg-muted/30">
-                        <TableCell className="text-sm">{c.comment_id}</TableCell>
+                        <TableCell className="text-sm">{truncateText(c.comment_id || "", 6)}</TableCell>
                         <TableCell className="text-sm">{c.media_item_id_ext}</TableCell>
                         <TableCell className="text-sm">{c.author || "-"}</TableCell>
                         <TableCell className="max-w-md text-sm leading-relaxed">
@@ -130,12 +170,22 @@ const Timestamp: React.FC<{ iso: string }> = ({ iso }) => {
                           <StatusBadge status={c.processing_status as any} />
                         </TableCell>
                         <TableCell>
-                          {c.score !== undefined && (
                             <div className="flex items-center gap-1">
-                              <span className="text-sm font-medium">{c.score}</span>
-                              <span className="text-xs text-muted-foreground">/5</span>
+                              <span className="text-sm font-medium">{c.risk_score || "-"}</span>
                             </div>
-                          )}
+                        </TableCell>
+
+                        <TableCell>
+                            <p>{RISK_LEVEL_MAP[c.risk_level] || "-"}</p>
+                        </TableCell>
+                        <TableCell>
+                            <p>{PROCESSING_CATEGORY_MAP[c.processing_category] || "-"}</p>
+                        </TableCell>
+                        <TableCell>
+                            <Timestamp iso={c.processed_at} />
+                        </TableCell>
+                        <TableCell>
+                            <p>{PROCESSING_RESULT_MAP[c.processing_result] || "-"}</p>
                         </TableCell>
                         <TableCell>
                           <span className="text-xs text-muted-foreground">
