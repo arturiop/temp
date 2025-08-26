@@ -32,23 +32,31 @@ const RunWorkers: React.FC = () => {
             keywords: [keywords],
             limit,
         };
+        try {
+            const res = await fetch(HOST + "/api/worker/run-workers", {
+                method: "POST",
+                body: JSON.stringify(body),
+                headers: {
+                    "Content-Type": "application/json",
+                "ngrok-skip-browser-warning": "true",
+    
+                },
+            });
+    
+            const data = await res.json()
+    
+            toast({
+                title: "Job started: ID -" + data.job_id,
+                description: `Refresh page to see new data`,
+            })
+            
+        } catch (error) {
+            toast({
+                title: "Some error happened",
+            })
+        }
 
-        const res = await fetch(HOST + "/api/worker/run-workers", {
-            method: "POST",
-            body: JSON.stringify(body),
-            headers: {
-                "Content-Type": "application/json",
-            "ngrok-skip-browser-warning": "true",
 
-            },
-        });
-
-        const data = await res.json()
-
-        toast({
-            title: "Job started: ID -" + data.job_id,
-            description: `Refresh page to see new data`,
-        })
 
         setOpen(false);
     };
