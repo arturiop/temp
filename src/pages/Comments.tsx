@@ -73,7 +73,7 @@ export default function CommentsQueue({ mediaItemUUID }) {
       setLoading(true);
       const offset = (page - 1) * pageSize;
       const res = await fetch(
-        `${HOST}/api/comments?limit=${pageSize}&offset=${offset}&filter=${{ media_item_uuid: mediaItemUUID }}`,
+        `${HOST}/api/comments?limit=${pageSize}&offset=${offset}&media_item_uuid=${mediaItemUUID}`,
         {
           method: "GET",
           headers: {

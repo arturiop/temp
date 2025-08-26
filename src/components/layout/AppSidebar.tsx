@@ -25,12 +25,6 @@ const navigation = [
     icon: List,
     description: "Review incoming posts"
   },
-  { 
-    title: "Comments", 
-    url: "/comments", 
-    icon: BarChart3,
-    description: "Comments"
-  },
 ];
 
 export function AppSidebar() {
