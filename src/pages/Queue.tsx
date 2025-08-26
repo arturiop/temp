@@ -23,6 +23,7 @@ import { formatDistanceToNow } from "date-fns";
 import { usePostActions } from "@/hooks/usePostActions";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import RunWorkers from "@/components/run-workers";
+import { useNavigate } from "react-router-dom";
 
 const Timestamp: React.FC<{ iso: string }> = ({ iso }) => {
     const date = new Date(iso);
@@ -52,7 +53,8 @@ export default function Queue() {
     const [page, setPage] = useState(1);
     const pageSize = 10;
     const [loading, setLoading] = useState(false);
-  
+    const nav = useNavigate();
+
     const fetchPosts = async () => {
       setLoading(true);
       const offset = (page - 1) * pageSize;
@@ -145,7 +147,7 @@ export default function Queue() {
                   </TableHeader>
                   <TableBody>
                     {filteredPosts.map((post) => (
-                      <TableRow key={post.id} className="hover:bg-muted/30">
+                      <TableRow key={post.id} onClick={() => nav(`/media_items/${post.id}`)} className="cursor-pointer hover:bg-muted/30">
                         <TableCell className="text-sm">{post.content_id}</TableCell>
                         <TableCell>
                           <PlatformBadge platform={post.platform} />
@@ -162,7 +164,7 @@ export default function Queue() {
                           <span className="text-sm font-medium">{post.author}</span>
                         </TableCell>
                         <TableCell>
-                          {post?.risk_level && <RiskBadge risk={post.risk_level} />}
+                          {(post as any)?.risk_level && <RiskBadge risk={post.risk_level} />}
                         </TableCell>
                         <TableCell>
                           <StatusBadge status={post.processing_status as any} />

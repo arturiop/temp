@@ -6,7 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "./components/layout/AppLayout";
 import Queue from "./pages/Queue";
 import NotFound from "./pages/NotFound";
-import Comments from "./pages/Comments";
+// import Comments from "./pages/Comments";
+import MediaItemPage from "./pages/MediaItemPage";
 
 const queryClient = new QueryClient();
 
@@ -19,7 +20,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<AppLayout />}>
             <Route index element={<Queue />} />
-            <Route path="comments" element={<Comments />} />
+            <Route path="/media_items/:id" element={<MediaItemPage />} />
+            {/* <Route path="comments" element={<Comments />} /> */}
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

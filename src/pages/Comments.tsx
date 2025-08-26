@@ -62,7 +62,7 @@ const PROCESSING_CATEGORY_MAP = {
     3: "Anxiety / Depression",
 }
 
-export default function CommentsQueue() {
+export default function CommentsQueue({ mediaItemUUID }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [comments, setComments] = useState<any[]>([]);
     const [page, setPage] = useState(1);
@@ -73,7 +73,7 @@ export default function CommentsQueue() {
       setLoading(true);
       const offset = (page - 1) * pageSize;
       const res = await fetch(
-        `${HOST}/api/comments?limit=${pageSize}&offset=${offset}`,
+        `${HOST}/api/comments?limit=${pageSize}&offset=${offset}&filter=${{ media_item_uuid: mediaItemUUID }}`,
         {
           method: "GET",
           headers: {
@@ -104,7 +104,7 @@ export default function CommentsQueue() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-foreground">Comments</h1>
-          <ProcessComments />
+          {/* <ProcessComments /> */}
         </div>
   
         {/* Search */}
