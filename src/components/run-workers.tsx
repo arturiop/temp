@@ -38,6 +38,8 @@ const RunWorkers: React.FC = () => {
             body: JSON.stringify(body),
             headers: {
                 "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "true",
+
             },
         });
 
