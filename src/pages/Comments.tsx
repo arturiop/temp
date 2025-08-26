@@ -108,7 +108,7 @@ export default function CommentsQueue({ mediaItemUUID }) {
         </div>
   
         {/* Search */}
-        <Card>
+        {/* <Card>
           <CardHeader className="pb-4">
             <div className="flex items-center gap-4">
               <div className="relative flex-1">
@@ -125,7 +125,7 @@ export default function CommentsQueue({ mediaItemUUID }) {
               </div>
             </div>
           </CardHeader>
-        </Card>
+        </Card> */}
   
         {/* Comments Table */}
         <Card>
