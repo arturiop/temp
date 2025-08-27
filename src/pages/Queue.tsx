@@ -23,6 +23,7 @@ const Timestamp: React.FC<{ iso: string }> = ({ iso }) => {
     return <span>{date.toLocaleString()}</span>;
 };
 type TPost = {
+    id: string;
     author: string;
     title: string;
     body: string;
@@ -31,7 +32,7 @@ type TPost = {
     comments_cnt: number;
     created_at_platform: string;
     processing_status: number;
-    id: string;
+    url: string
 
     fetched_at: string;
     content_id: string;
@@ -139,7 +140,9 @@ export default function Queue() {
                                             </TableCell>
                                             <TableCell className="max-w-xs">
                                                 <div className="space-y-1">
-                                                    <p className="text-sm font-semibold">{post.title}</p>
+                                                    <a href={post.url}  onClick={(e) => e.stopPropagation()} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold hover:underline">
+                                                        {post.title}
+                                                    </a>
                                                     <p className="text-sm leading-relaxed">{truncateText(post.body, 100)}</p>
                                                 </div>
                                             </TableCell>
