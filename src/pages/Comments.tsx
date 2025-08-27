@@ -31,36 +31,40 @@ const Timestamp: React.FC<{ iso: string }> = ({ iso }) => {
     return <span>{date.toLocaleString()}</span>;
   };
 
-const PROCESSING_STATUS_MAP = {
-    0: "Created",
-    1: "Processing",
-    2: "Processed",
-    3: "Failed",
-}
 
-const RISK_LEVEL_MAP = {
+  const RELEVANCE_MAP = {
+    0: "None",
+    1: "Low",
+    2: "Medium",
+    3: "High",
+};
+
+// urgency: [0=NONE, 1=LOW, 2=MEDIUM, 3=HIGH, 4=CRITICAL]
+const URGENCY_MAP = {
     0: "None",
     1: "Low",
     2: "Medium",
     3: "High",
     4: "Critical",
-}
+};
 
-const PROCESSING_RESULT_MAP = {
+// category: [0=NONE, 1=DRUG_ADDICTION, 2=MENTAL_HEALTH, 3=OTHER]
+const CATEGORY_MAP = {
     0: "None",
-    1: "Low Priority",
-    2: "Needs Review",
-    3: "Needs Attention",
-    4: "Escalate",
-    8: "Failed",
-}
+    1: "Drug Addiction",
+    2: "Mental Health",
+    3: "Other",
+};
 
-const PROCESSING_CATEGORY_MAP = {
-    0: "Other",
-    1: "Self-harm",
-    2: "Suicidal Ideation",
+// subtype: [0=NONE, 1=SUBSTANCE_USE, 2=ALCOHOL, 3=ANXIETY_DEPRESSION, 4=SELF_HARM, 5=SUICIDAL_IDEATION]
+const SUBTYPE_MAP = {
+    0: "None",
+    1: "Substance Use",
+    2: "Alcohol",
     3: "Anxiety / Depression",
-}
+    4: "Self-harm",
+    5: "Suicidal Ideation",
+};
 
 export default function CommentsQueue({ mediaItemUUID }) {
     const [searchQuery, setSearchQuery] = useState("");
@@ -107,26 +111,6 @@ export default function CommentsQueue({ mediaItemUUID }) {
           {/* <ProcessComments /> */}
         </div>
   
-        {/* Search */}
-        {/* <Card>
-          <CardHeader className="pb-4">
-            <div className="flex items-center gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Search comments, authors, or IDs..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setPage(1); // reset to first page on search
-                  }}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-          </CardHeader>
-        </Card> */}
-  
         {/* Comments Table */}
         <Card>
           <CardContent className="p-0">
@@ -142,16 +126,14 @@ export default function CommentsQueue({ mediaItemUUID }) {
                       <TableHead>Author</TableHead>
                       <TableHead>Body</TableHead>
                       <TableHead>Platform</TableHead>
-                      <TableHead>Status</TableHead>
 
-                      <TableHead>Risk Score</TableHead>
-                      <TableHead>Risk Level</TableHead>
+                      <TableHead>Relevance</TableHead>
+                      <TableHead>Urgency</TableHead>
                       <TableHead>Category</TableHead>
-                      <TableHead>Processed At</TableHead>
-                      <TableHead>Result</TableHead>
+                      <TableHead>Subtype</TableHead>
 
                       <TableHead>Created at Platform</TableHead>
-                      <TableHead>Fetched</TableHead>
+                      <TableHead>Processed At</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -167,25 +149,16 @@ export default function CommentsQueue({ mediaItemUUID }) {
                           <PlatformBadge platform={c.platform} />
                         </TableCell>
                         <TableCell>
-                          <StatusBadge status={c.processing_status as any} />
+                            <p>{c.relevance ? RELEVANCE_MAP[c.relevance] : "-"}</p>
                         </TableCell>
                         <TableCell>
-                            <div className="flex items-center gap-1">
-                              <span className="text-sm font-medium">{c.risk_score || "-"}</span>
-                            </div>
-                        </TableCell>
-
-                        <TableCell>
-                            <p>{RISK_LEVEL_MAP[c.risk_level] || "-"}</p>
+                            <p>{c.urgency ? URGENCY_MAP[c.urgency] : "-"}</p>
                         </TableCell>
                         <TableCell>
-                            <p>{PROCESSING_CATEGORY_MAP[c.processing_category] || "-"}</p>
+                            <p>{c.category ? CATEGORY_MAP[c.category] : "-"}</p>
                         </TableCell>
                         <TableCell>
-                            <Timestamp iso={c.processed_at} />
-                        </TableCell>
-                        <TableCell>
-                            <p>{PROCESSING_RESULT_MAP[c.processing_result] || "-"}</p>
+                            <p>{c.subtype ? SUBTYPE_MAP[c.subtype] : "-"}</p>
                         </TableCell>
                         <TableCell>
                           <span className="text-xs text-muted-foreground">
@@ -193,7 +166,9 @@ export default function CommentsQueue({ mediaItemUUID }) {
                           </span>
                         </TableCell>
                         <TableCell>
-                          <Timestamp iso={c.fetched_at} />
+                          <span className="text-xs text-muted-foreground">
+                            {c.processed_at}
+                          </span>
                         </TableCell>
                       </TableRow>
                     ))}

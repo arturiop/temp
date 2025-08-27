@@ -6,7 +6,7 @@ interface MediaItem {
   id: string;
   title: string;
   url: string;
-  description?: string;
+  body?: string;
 }
 
 const HOST = "https://1431ffb63976.ngrok-free.app"
@@ -39,11 +39,10 @@ export default function MediaItemPage() {
 
   return (
     <>
-    <div className="p-6 max-w-xl mx-auto">
+    <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">{item.title}</h1>
-      <img src={item.url} alt={item.title} className="rounded-lg shadow-md" />
-      {item.description && (
-        <p className="mt-4 text-gray-600">{item.description}</p>
+      {item.body && (
+        <p className="mt-4 text-gray-600">{item.body}</p>
       )}
     </div>
 
